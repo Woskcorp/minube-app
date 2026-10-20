@@ -1,0 +1,13 @@
+{
+  "name": "MiNube - Libreta personal",
+  "short_name": "MiNube",
+  "description": "Tu libreta digital personal",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f5fc",
+  "theme_color": "#6657d9",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
