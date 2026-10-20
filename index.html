@@ -9,7 +9,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <title>MiNube</title>
 <style>
-:root{--bg:#f6f5fc;--card:#fff;--ink:#24213a;--muted:#77738e;--accent:#6657d9;--line:#e8e5f4;--soft:#eeebff}
+:root{--bg:#f6f5fc;--card:#fff;--ink:#24213a;--muted:#77738e;--accent:var(--user-accent, #6657d9);--line:#e8e5f4;--soft:#eeebff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
 header{padding:calc(18px + env(safe-area-inset-top)) 18px 18px;background:linear-gradient(135deg,#6657d9,#9b70e8);color:white;border-radius:0 0 24px 24px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px}h1{margin:0;font-size:27px}header p{margin:6px 0 0;opacity:.9;font-size:14px}
@@ -39,6 +39,27 @@ body.dark{--bg:#171625;--card:#242236;--ink:#f3f1ff;--muted:#b5b0cc;--line:#3b38
 <div class="panel"><input id="search" placeholder="🔎 Buscar en tus notas"><div class="muted" id="count">Tus notas se guardan en este dispositivo.</div><div id="notesList"></div></div>
 </section>
 <section id="aboutPage" class="hidden">
+<div class="panel"><h2>Personaliza MiNube</h2>
+<p class="muted">Elige el color y el tamaño de texto que prefieras. Tus preferencias se guardan en este dispositivo.</p>
+<label for="accentSelect">Color principal</label>
+<select id="accentSelect">
+<option value="#6657d9">Violeta</option>
+<option value="#167d8d">Turquesa</option>
+<option value="#28764a">Verde</option>
+<option value="#b64b78">Rosa</option>
+<option value="#bd6a18">Naranja</option>
+<option value="#315db5">Azul</option>
+</select>
+<label for="fontSelect">Tamaño del texto</label>
+<select id="fontSelect">
+<option value="15px">Pequeño</option>
+<option value="16px">Normal</option>
+<option value="18px">Grande</option>
+<option value="20px">Muy grande</option>
+</select>
+<div class="row"><button id="lightBtn" class="secondary">Apariencia clara</button><button id="darkBtn" class="secondary">Apariencia oscura</button></div>
+<button id="resetAppearance" class="secondary">Restablecer apariencia</button>
+</div>
 <div class="panel"><h2>Bienvenida a MiNube</h2><p>Una libreta digital sencilla y personalizable.</p><p class="muted">En esta versión, tus notas se guardan en el almacenamiento de este navegador en tu dispositivo. No se envían a un servidor.</p><h2>Funciones</h2><p>• Crear, editar, buscar y eliminar notas.<br>• Añadir categorías.<br>• Cambiar entre apariencia clara y oscura.<br>• Uso sin conexión después de la primera carga, cuando esté instalada desde una dirección HTTPS.</p><p class="muted">Consejo: exporta tus notas periódicamente para tener una copia de seguridad.</p><div class="row"><button id="exportBtn">Exportar copia</button><button id="importBtn" class="secondary">Importar copia</button></div><input id="importFile" type="file" accept="application/json" class="hidden"></div>
 <div class="panel"><h2>El chat de MiNube</h2><p>El chat entre personas aún no está conectado. Para hacerlo necesitaremos configurar un servicio en línea. Tus notas personales seguirán separadas del chat.</p></div>
 </section>
@@ -56,7 +77,22 @@ $('saveBtn').addEventListener('click',()=>{let title=$('noteTitle').value.trim()
 $('cancelBtn').addEventListener('click',resetForm);$('search').addEventListener('input',render);
 $('notesList').addEventListener('click',e=>{let edit=e.target.dataset.edit,del=e.target.dataset.delete;if(edit){let n=notes.find(n=>n.id===edit);if(!n)return;editing=n.id;$('noteTitle').value=n.title;$('noteBody').value=n.body;$('noteTag').value=n.tag;$('formTitle').textContent='Editar nota';$('saveBtn').textContent='Guardar cambios';$('cancelBtn').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'})}if(del){let n=notes.find(n=>n.id===del);if(n&&confirm('¿Eliminar esta nota?')){notes=notes.filter(x=>x.id!==del);persist();if(editing===del)resetForm()}}});
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));$('notesPage').classList.toggle('hidden',b.dataset.page!=='notes');$('aboutPage').classList.toggle('hidden',b.dataset.page!=='about')}));
-$('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('dark');localStorage.setItem('minube-dark',document.body.classList.contains('dark')?'1':'0')});if(localStorage.getItem('minube-dark')==='1')document.body.classList.add('dark');
+function applyAppearance(){
+  const accent=localStorage.getItem('minube-accent')||'#6657d9';
+  const fontSize=localStorage.getItem('minube-font-size')||'16px';
+  document.documentElement.style.setProperty('--user-accent',accent);
+  document.documentElement.style.fontSize=fontSize;
+  $('accentSelect').value=accent;
+  $('fontSelect').value=fontSize;
+  document.body.classList.toggle('dark',localStorage.getItem('minube-dark')==='1');
+}
+$('themeBtn').addEventListener('click',()=>{localStorage.setItem('minube-dark',document.body.classList.contains('dark')?'0':'1');applyAppearance()});
+$('accentSelect').addEventListener('change',e=>{localStorage.setItem('minube-accent',e.target.value);applyAppearance()});
+$('fontSelect').addEventListener('change',e=>{localStorage.setItem('minube-font-size',e.target.value);applyAppearance()});
+$('lightBtn').addEventListener('click',()=>{localStorage.setItem('minube-dark','0');applyAppearance()});
+$('darkBtn').addEventListener('click',()=>{localStorage.setItem('minube-dark','1');applyAppearance()});
+$('resetAppearance').addEventListener('click',()=>{localStorage.removeItem('minube-accent');localStorage.removeItem('minube-font-size');localStorage.setItem('minube-dark','0');applyAppearance()});
+applyAppearance();
 $('exportBtn').addEventListener('click',()=>{let blob=new Blob([JSON.stringify({app:'MiNube',version:1,notes},null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='minube-copia.json';a.click();URL.revokeObjectURL(a.href)});
 $('importBtn').addEventListener('click',()=>$('importFile').click());$('importFile').addEventListener('change',async e=>{let f=e.target.files[0];if(!f)return;try{let data=JSON.parse(await f.text());let incoming=Array.isArray(data)?data:data.notes;if(!Array.isArray(incoming))throw Error();if(confirm('Importar '+incoming.length+' notas? Se añadirán a las existentes.')){notes=notes.concat(incoming.filter(n=>n&&typeof n==='object').map(n=>({id:String(n.id||Date.now()+Math.random()),title:String(n.title||''),body:String(n.body||''),tag:String(n.tag||''),updated:Number(n.updated)||Date.now()})));persist();alert('Copia importada.')}}catch(err){alert('No se pudo leer esa copia. Selecciona un archivo JSON exportado desde MiNube.')}e.target.value=''});
 if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
